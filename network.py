@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from data_reader import BatchDataReader
-from ops import conv2d, pool2d, dilated_conv
+from ops import conv2d, pool2d, deconv2d
 
 
 class DilatedPixelCNN(object):
@@ -11,6 +11,7 @@ class DilatedPixelCNN(object):
         self.conf = conf
         self.conv_size = (3, 3)
         self.pool_size = (2, 2)
+        self.deconv_size = (2, 2)
         if conf.use_gpu:
             self.data_format = 'NCHW'
             self.axis, self.channel_axis = (2, 3), 1
@@ -125,9 +126,11 @@ class DilatedPixelCNN(object):
 
     def construct_up_block(self, inputs, down_inputs, name, final=False):
         num_outputs = inputs.shape[self.channel_axis].value
-        conv1 = dilated_conv(
-            inputs, num_outputs, self.conv_size, name+'/conv1',
-            self.axis, self.conf.keep_prob, self.data_format)
+        conv1 = deconv2d(inputs, num_outputs, self.deconv_size, name+'/deconv1',
+         self.conf.keep_prob, self.data_format)
+        # conv1 = dilated_conv(
+        #     inputs, num_outputs, self.conv_size, name+'/conv1',
+        #     self.axis, self.conf.keep_prob, self.data_format)
         conv1 = tf.concat(
             [conv1, down_inputs], self.channel_axis, name=name+'/concat')
         conv2 = conv2d(
