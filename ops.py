@@ -20,6 +20,19 @@ def pool2d(inputs, kernel_size, scope, data_format):
         data_format=data_format)
 
 
+
+def deconv2d(inputs, num_outputs, kernel_size, scope, prob, d_format):
+    outputs = tf.contrib.layers.conv2d_transpose(
+        inputs, num_outputs, kernel_size, scope=scope+'deconv1', stride= [2,2],
+        data_format= d_format,activation_fn=None, biases_initializer=None)
+    if prob< 1.0:
+        outputs= tf.nn.dropout(outputs, prob, name=scope+'/dropout1')
+    return tf.contrib.layers.batch_norm(
+        outputs, decay=0.9, activation_fn=tf.nn.relu,updates_collections=None,
+        epsilon=1e-5, scope=scope+'/batch_norm',data_format=d_format)
+
+
+
 def dilated_conv(inputs, out_num, kernel_size, scope, axis, prob, d_format):
     conv1 = conv2d(
         inputs, out_num, kernel_size, scope+'/conv1', prob, d_format)
